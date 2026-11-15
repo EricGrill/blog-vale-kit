@@ -23,7 +23,6 @@ python3 -m py_compile scripts/vale-lint.py
 bash -n scripts/install-vale.sh
 bash -n scripts/install-base-styles.sh
 bash -n scripts/changed-markdown.sh
-bash -n scripts/kit-ref.sh
 bash -n scripts/test-fixtures.sh
 
 # Refreshing Base onto this repo must keep the rules in place.
@@ -168,10 +167,10 @@ grep -q 'templates/STYLE.md' README.md || fail "README does not point at the STY
 got=$(VALE_FILE_INPUT="$(printf 'fixtures/good.md\nstyles/Base/AIPhrases.yml\nmissing.md\n')" bash scripts/changed-markdown.sh)
 test "$got" = "fixtures/good.md" || fail "changed-markdown filter returned: $got"
 
-ref=$(GITHUB_WORKFLOW_REF='EricGrill/blog-vale-kit/.github/workflows/vale.yml@refs/heads/main' bash scripts/kit-ref.sh)
-test "$ref" = "refs/heads/main" || fail "kit ref parsed as '$ref'"
-if GITHUB_WORKFLOW_REF='' bash scripts/kit-ref.sh >/dev/null 2>&1; then
-  fail "empty workflow ref should fail"
+grep -q 'job.workflow_sha' .github/workflows/vale.yml || fail "kit checkout does not use the called workflow SHA"
+grep -q 'job.workflow_repository' .github/workflows/vale.yml || fail "kit checkout does not use the called workflow repository"
+if grep -q 'GITHUB_WORKFLOW_REF' .github/workflows/vale.yml; then
+  fail "GITHUB_WORKFLOW_REF is the caller ref, not the kit ref"
 fi
 
 repo=$(mktemp -d)
