@@ -1,0 +1,8 @@
+# Sample site rule. Copy this file to styles/<Site>/Banned.yml.
+extends: substitution
+message: "Use '%s' instead of '%s'."
+level: warning
+ignorecase: true
+vocab: true
+swap:
+  cheap: affordable

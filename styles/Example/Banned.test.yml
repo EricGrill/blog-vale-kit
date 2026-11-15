@@ -1,0 +1,11 @@
+- name: flags cheap
+  rule: Banned.yml
+  input: This toy is cheap.
+  contains:
+    - Example.Banned
+    - affordable
+
+- name: affordable stays quiet
+  rule: Banned.yml
+  input: This toy is affordable.
+  want: ""

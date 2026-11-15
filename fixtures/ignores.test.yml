@@ -1,0 +1,49 @@
+# Project cases. They use fixtures/.vale.ini, including MDX ignore patterns.
+
+- name: mdx comment is ignored
+  format: mdx
+  input: |
+    {/* delve into the tapestry and leverage it, perhaps */}
+
+    Wash the dog with warm water.
+  want: ""
+
+- name: jsx attribute is ignored
+  format: mdx
+  input: |
+    <Hero title="delve into a cheap website and act now on this synergy" />
+
+    Wash the dog with warm water.
+  want: ""
+
+- name: multiline jsx tag is ignored
+  format: mdx
+  input: |
+    <Hero
+      title="delve and leverage a tapestry"
+    />
+
+    Wash the dog with warm water.
+  want: ""
+
+- name: jsx expression is ignored
+  format: mdx
+  input: |
+    Use the {delve} helper and the {synergy} flag.
+
+    Wash the dog with warm water.
+  want: ""
+
+- name: import line is ignored
+  format: mdx
+  input: |
+    import { delve } from "./leverage"
+
+    Wash the dog with warm water.
+  want: ""
+
+- name: mdx prose is still checked
+  format: mdx
+  input: |
+    It is important to note that we delve into this.
+  contains: Base.AIPhrases

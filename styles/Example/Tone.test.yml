@@ -1,0 +1,9 @@
+- name: flags act now
+  rule: Tone.yml
+  input: Readers should act now.
+  contains: Example.Tone
+
+- name: a calm sentence stays quiet
+  rule: Tone.yml
+  input: Readers can start today.
+  want: ""

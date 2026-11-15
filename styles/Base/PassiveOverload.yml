@@ -1,0 +1,7 @@
+extends: occurrence
+message: "This paragraph uses passive voice %s times. Use active voice."
+level: suggestion
+scope: paragraph
+ignorecase: true
+max: 2
+token: '\b(?:am|is|are|was|were|be|been|being)\s+(?:\w+ed|written|shown|built|known|done|made|seen|given|taken|found|told|sold|held|left|kept|felt|heard|born|begun|chosen)\b'

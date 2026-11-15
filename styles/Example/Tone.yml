@@ -1,0 +1,10 @@
+# Sample site rule. Copy this file to styles/<Site>/Tone.yml.
+extends: existence
+message: "'%s' is louder than this site's tone."
+level: suggestion
+ignorecase: true
+vocab: true
+tokens:
+  - act now
+  - limited time
+  - you won't believe

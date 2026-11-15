@@ -1,0 +1,104 @@
+name: Vale
+
+on:
+  workflow_call:
+    inputs:
+      fail_on_error:
+        description: >-
+          Fail the check when Vale reports an error-level alert.
+          Suggestions and warnings never fail the check.
+          The default reports every alert as a warning.
+        type: boolean
+        default: false
+      files:
+        description: >-
+          Newline-separated Markdown or MDX paths to lint.
+          Empty lints files changed in the pull request.
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  vale:
+    name: Vale
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          fetch-depth: 0
+
+      - name: Choose kit source
+        id: kit
+        run: |
+          set -euo pipefail
+          if [ "${GITHUB_REPOSITORY}" = "EricGrill/blog-vale-kit" ] && [ -f scripts/vale-lint.py ]; then
+            echo "path=." >> "$GITHUB_OUTPUT"
+            echo "local=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "path=.blog-vale-kit" >> "$GITHUB_OUTPUT"
+            echo "local=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Resolve kit ref
+        id: kitref
+        if: steps.kit.outputs.local == 'false'
+        run: |
+          set -euo pipefail
+          raw="${GITHUB_WORKFLOW_REF:-}"
+          ref="${raw##*@}"
+          if [ -n "$ref" ] && [ "$ref" != "$raw" ]; then
+            echo "ref=${ref}" >> "$GITHUB_OUTPUT"
+            echo "Resolved kit ref: ${ref}"
+            exit 0
+          fi
+          echo "Could not resolve the blog-vale-kit ref from GITHUB_WORKFLOW_REF='${raw}'." >&2
+          exit 1
+
+      - name: Checkout Vale kit
+        if: steps.kit.outputs.local == 'false'
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          repository: EricGrill/blog-vale-kit
+          ref: ${{ steps.kitref.outputs.ref }}
+          path: .blog-vale-kit
+          persist-credentials: false
+
+      - name: Install Base styles
+        run: bash "${{ steps.kit.outputs.path }}/scripts/install-base-styles.sh" .
+
+      - name: List Markdown files
+        env:
+          VALE_FILE_INPUT: ${{ inputs.files }}
+          VALE_BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          if [ -n "${VALE_BASE_REF:-}" ] && [ -z "${VALE_FILE_INPUT:-}" ]; then
+            git fetch --no-tags origin "${VALE_BASE_REF}"
+          fi
+          bash "${{ steps.kit.outputs.path }}/scripts/changed-markdown.sh" > "${RUNNER_TEMP}/vale-files.txt"
+          echo "Markdown files:"
+          cat "${RUNNER_TEMP}/vale-files.txt"
+
+      - name: Install Vale
+        run: bash "${{ steps.kit.outputs.path }}/scripts/install-vale.sh" "${GITHUB_WORKSPACE}/.tools"
+
+      - name: Lint
+        env:
+          FAIL_ON_ERROR: ${{ inputs.fail_on_error }}
+        run: |
+          set -euo pipefail
+          export PATH="${GITHUB_WORKSPACE}/.tools:${PATH}"
+          if [ "${FAIL_ON_ERROR}" = "true" ]; then
+            python3 "${{ steps.kit.outputs.path }}/scripts/vale-lint.py" \
+              --fail-on-error \
+              --config .vale.ini \
+              --file-list "${RUNNER_TEMP}/vale-files.txt"
+          else
+            python3 "${{ steps.kit.outputs.path }}/scripts/vale-lint.py" \
+              --config .vale.ini \
+              --file-list "${RUNNER_TEMP}/vale-files.txt"
+          fi
