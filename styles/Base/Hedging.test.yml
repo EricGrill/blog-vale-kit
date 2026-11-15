@@ -1,0 +1,14 @@
+- name: flags perhaps
+  rule: Hedging.yml
+  input: Perhaps the dog is ready.
+  contains: Base.Hedging
+
+- name: flags might be able
+  rule: Hedging.yml
+  input: This might be able to help.
+  contains: Base.Hedging
+
+- name: a plain claim stays quiet
+  rule: Hedging.yml
+  input: The dog is ready for a bath.
+  want: ""

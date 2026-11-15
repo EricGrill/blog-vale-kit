@@ -1,0 +1,18 @@
+extends: existence
+message: "'%s' is hedging. State the claim, or cut the hedge."
+level: suggestion
+ignorecase: true
+vocab: true
+tokens:
+  - perhaps
+  - arguably
+  - somewhat
+  - it seems
+  - sort of
+  - kind of
+  - i think
+  - i believe
+  - might be able
+  - appears to
+  - fairly
+  - quite a bit

@@ -1,0 +1,2 @@
+# Names this sample site allows. One term per line.
+Vale

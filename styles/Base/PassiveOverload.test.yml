@@ -1,0 +1,14 @@
+- name: three passives in one paragraph
+  rule: PassiveOverload.yml
+  input: The coat was washed by the owner. The soap was worked by the owner. The water was rinsed by the owner.
+  contains: Base.PassiveOverload
+
+- name: two passives stay quiet
+  rule: PassiveOverload.yml
+  input: The coat was washed by the owner. The soap was worked by the owner.
+  want: ""
+
+- name: one passive stays quiet
+  rule: PassiveOverload.yml
+  input: The coat was washed by the owner.
+  want: ""

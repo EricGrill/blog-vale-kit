@@ -1,0 +1,3 @@
+# Shared allow-list. One term per line. Lines starting with # are comments.
+# Leave real names to the site vocabulary. An entry also enforces that spelling,
+# so a shared term here would flag every other capitalization in every blog.

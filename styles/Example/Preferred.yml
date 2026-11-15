@@ -1,0 +1,8 @@
+# Sample site rule. Copy this file to styles/<Site>/Preferred.yml.
+extends: substitution
+message: "Prefer '%s' instead of '%s'."
+level: suggestion
+ignorecase: true
+vocab: true
+swap:
+  website: site

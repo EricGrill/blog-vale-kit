@@ -1,0 +1,11 @@
+- name: flags website
+  rule: Preferred.yml
+  input: Open the website.
+  contains:
+    - Example.Preferred
+    - site
+
+- name: site stays quiet
+  rule: Preferred.yml
+  input: Open the site.
+  want: ""

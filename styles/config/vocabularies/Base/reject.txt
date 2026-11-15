@@ -1,0 +1,2 @@
+# Terms every blog should flag. Prefer the site reject list for house bans.
+# Leave this file in place even when it has no terms.

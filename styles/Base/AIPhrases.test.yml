@@ -1,0 +1,21 @@
+- name: flags a stock phrase
+  rule: AIPhrases.yml
+  input: It is important to note that dogs need baths.
+  contains:
+    - Base.AIPhrases
+    - It is important to note
+
+- name: flags delve
+  rule: AIPhrases.yml
+  input: We delve into the topic.
+  contains: Base.AIPhrases
+
+- name: leaves inline code alone
+  rule: AIPhrases.yml
+  input: "Run `delve` before the bath."
+  want: ""
+
+- name: a plain sentence stays quiet
+  rule: AIPhrases.yml
+  input: Wash the dog with warm water.
+  want: ""

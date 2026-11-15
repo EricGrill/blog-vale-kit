@@ -1,0 +1,10 @@
+name: Blog voice
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  vale:
+    uses: EricGrill/blog-vale-kit/.github/workflows/vale.yml@main
+    with:
+      fail_on_error: false
