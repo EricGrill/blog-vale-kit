@@ -173,6 +173,11 @@ test "$ref" = "refs/heads/main" || fail "kit ref parsed as '$ref'"
 if GITHUB_WORKFLOW_REF='' bash scripts/kit-ref.sh >/dev/null 2>&1; then
   fail "empty workflow ref should fail"
 fi
+ref=$(JOB_WORKFLOW_SHA='abc123' GITHUB_WORKFLOW_REF='EricGrill/quarterrock/.github/workflows/blog-voice.yml@refs/pull/54/merge' bash scripts/kit-ref.sh)
+test "$ref" = "abc123" || fail "caller pull ref replaced the kit sha: $ref"
+ref=$(JOB_WORKFLOW_REF='EricGrill/blog-vale-kit/.github/workflows/vale.yml@refs/heads/main' GITHUB_WORKFLOW_REF='EricGrill/quarterrock/.github/workflows/blog-voice.yml@refs/pull/54/merge' bash scripts/kit-ref.sh)
+test "$ref" = "refs/heads/main" || fail "job workflow ref parsed as '$ref'"
+grep -q 'JOB_WORKFLOW_SHA: \${{ job.workflow_sha }}' .github/workflows/vale.yml || fail "reusable workflow does not read job.workflow_sha"
 
 repo=$(mktemp -d)
 git -C "$repo" init -b main
