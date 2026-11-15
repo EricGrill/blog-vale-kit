@@ -173,14 +173,14 @@ grep -q 'kit_ref: v1' README.md || fail "README missing kit_ref: v1"
 test "$(wc -l < examples/caller.yml | tr -d ' ')" -eq 11 || fail "caller workflow should be 11 lines"
 grep -q 'workflow_call:' .github/workflows/vale.yml || fail "reusable workflow missing workflow_call"
 grep -q 'fail_on_error:' .github/workflows/vale.yml || fail "reusable workflow missing fail_on_error"
+grep -q 'kit_ref:' .github/workflows/vale.yml || fail "reusable workflow missing kit_ref"
+grep -q 'inputs.kit_ref' .github/workflows/vale.yml || fail "kit checkout does not use kit_ref"
 grep -q 'fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09' .github/workflows/vale.yml || fail "checkout SHA is not pinned"
 grep -q 'templates/STYLE.md' README.md || fail "README does not point at the STYLE.md template"
 
 got=$(VALE_FILE_INPUT="$(printf 'fixtures/good.md\nstyles/Base/AIPhrases.yml\nmissing.md\n')" bash scripts/changed-markdown.sh)
 test "$got" = "fixtures/good.md" || fail "changed-markdown filter returned: $got"
 
-grep -q 'kit_ref:' .github/workflows/vale.yml || fail "reusable workflow missing kit_ref"
-grep -q 'inputs.kit_ref' .github/workflows/vale.yml || fail "kit checkout does not use kit_ref"
 grep -q 'job.workflow_repository' .github/workflows/vale.yml || fail "kit checkout does not use the called workflow repository"
 if grep -q 'GITHUB_WORKFLOW_REF' .github/workflows/vale.yml; then
   fail "GITHUB_WORKFLOW_REF is the caller ref, not the kit ref"

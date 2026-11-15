@@ -55,7 +55,8 @@ jobs:
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           # The caller's pull-request ref does not exist in this kit.
-          # kit_ref is an explicit ref here (default main).
+          # kit_ref is an explicit ref here (default main). Pin it to the
+          # same ref as the caller's uses: line.
           repository: ${{ job.workflow_repository }}
           ref: ${{ inputs.kit_ref }}
           path: .blog-vale-kit
