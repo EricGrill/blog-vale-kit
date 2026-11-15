@@ -5,6 +5,7 @@ permissions:
   contents: read
 jobs:
   vale:
-    uses: EricGrill/blog-vale-kit/.github/workflows/vale.yml@main
+    uses: EricGrill/blog-vale-kit/.github/workflows/vale.yml@v1
     with:
       fail_on_error: false
+      kit_ref: v1

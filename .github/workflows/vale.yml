@@ -16,6 +16,13 @@ on:
           Empty lints files changed in the pull request.
         type: string
         default: ""
+      kit_ref:
+        description: >-
+          Git ref of this kit to check out for styles and scripts
+          when another repository calls the workflow.
+          Pin it to the same ref as the uses line, for example v1.
+        type: string
+        default: main
 
 permissions:
   contents: read
@@ -47,10 +54,11 @@ jobs:
         if: steps.kit.outputs.local == 'false'
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
-          # The caller ref is not this file. job.workflow_sha is the commit
-          # of this workflow, which is the pin in the caller's uses: line.
+          # The caller's pull-request ref does not exist in this kit.
+          # kit_ref is an explicit ref here (default main). Pin it to the
+          # same ref as the caller's uses: line.
           repository: ${{ job.workflow_repository }}
-          ref: ${{ job.workflow_sha }}
+          ref: ${{ inputs.kit_ref }}
           path: .blog-vale-kit
           persist-credentials: false
 
