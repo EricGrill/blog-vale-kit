@@ -33,9 +33,9 @@ fi
 base="${VALE_BASE_REF:-${GITHUB_BASE_REF:-}}"
 if [ -n "$base" ]; then
   if git rev-parse --verify --quiet "origin/${base}" >/dev/null; then
-    git diff --name-only --diff-filter=ACMR "origin/${base}...HEAD" | emit_existing
+    git -c core.quotePath=false diff --name-only --diff-filter=ACMR "origin/${base}...HEAD" | emit_existing
   elif git rev-parse --verify --quiet "$base" >/dev/null; then
-    git diff --name-only --diff-filter=ACMR "${base}...HEAD" | emit_existing
+    git -c core.quotePath=false diff --name-only --diff-filter=ACMR "${base}...HEAD" | emit_existing
   else
     echo "Base ref '${base}' was not found. Fetch it before listing files." >&2
     exit 1
@@ -43,4 +43,4 @@ if [ -n "$base" ]; then
   exit 0
 fi
 
-git ls-files '*.md' '*.mdx' '*.MD' '*.MDX' | emit_existing
+git -c core.quotePath=false ls-files '*.md' '*.mdx' '*.MD' '*.MDX' | emit_existing

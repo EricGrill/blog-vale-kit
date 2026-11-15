@@ -47,3 +47,31 @@
   input: |
     It is important to note that we delve into this.
   contains: Base.AIPhrases
+
+- name: markdown import line is ignored
+  format: md
+  input: |
+    import { delve } from "./leverage"
+
+    Wash the dog with warm water.
+  want: ""
+
+- name: markdown export line is ignored
+  format: md
+  input: |
+    export const delve = "tapestry"
+
+    Wash the dog with warm water.
+  want: ""
+
+- name: prose containing export is still checked
+  format: md
+  input: |
+    We export the bath notes. It is important to note that the coat needs a rinse.
+  contains: Base.AIPhrases
+
+- name: angle brackets that are not a tag are checked
+  format: md
+  input: |
+    Keep the value < 3 and delve into the rinse > later.
+  contains: Base.AIPhrases
