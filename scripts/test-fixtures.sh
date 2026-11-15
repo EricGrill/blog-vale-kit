@@ -70,6 +70,15 @@ def require_clean(config, *paths):
 require_clean("fixtures/.vale.ini", "fixtures/good.md", "fixtures/good.mdx")
 require_clean(".vale.ini", "fixtures/good.md", "fixtures/good.mdx", "README.md", "templates/STYLE.md")
 
+def require_check(config, path, check):
+    found = alerts(config, path)
+    if not any(item_check == check for _, item_check, _, _ in found):
+        print(found, file=sys.stderr)
+        raise SystemExit(f"{path} under {config} did not report {check}")
+
+require_check("fixtures/.vale.ini", "fixtures/export-prose.md", "Base.AIPhrases")
+require_check(".vale.ini", "fixtures/export-prose.md", "Base.AIPhrases")
+
 required = {
     "Base.AIPhrases",
     "Base.Hedging",
@@ -156,9 +165,12 @@ test ! -e "$adopt/styles/config/vocabularies/Example"
 grep -q '::' "$tmp_out" && fail "adopted good post produced alerts: $(cat "$tmp_out")" || true
 rm -rf "$adopt"
 
-uses_line='uses: EricGrill/blog-vale-kit/.github/workflows/vale.yml@main'
+uses_line='uses: EricGrill/blog-vale-kit/.github/workflows/vale.yml@v1'
 grep -q "$uses_line" examples/caller.yml || fail "caller workflow missing the uses line"
-test "$(wc -l < examples/caller.yml | tr -d ' ')" -eq 10 || fail "caller workflow should be 10 lines"
+grep -q 'kit_ref: v1' examples/caller.yml || fail "caller workflow missing kit_ref: v1"
+grep -Fq "$uses_line" README.md || fail "README missing the v1 uses line"
+grep -q 'kit_ref: v1' README.md || fail "README missing kit_ref: v1"
+test "$(wc -l < examples/caller.yml | tr -d ' ')" -eq 11 || fail "caller workflow should be 11 lines"
 grep -q 'workflow_call:' .github/workflows/vale.yml || fail "reusable workflow missing workflow_call"
 grep -q 'fail_on_error:' .github/workflows/vale.yml || fail "reusable workflow missing fail_on_error"
 grep -q 'fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09' .github/workflows/vale.yml || fail "checkout SHA is not pinned"
@@ -167,11 +179,16 @@ grep -q 'templates/STYLE.md' README.md || fail "README does not point at the STY
 got=$(VALE_FILE_INPUT="$(printf 'fixtures/good.md\nstyles/Base/AIPhrases.yml\nmissing.md\n')" bash scripts/changed-markdown.sh)
 test "$got" = "fixtures/good.md" || fail "changed-markdown filter returned: $got"
 
-grep -q 'job.workflow_sha' .github/workflows/vale.yml || fail "kit checkout does not use the called workflow SHA"
+grep -q 'kit_ref:' .github/workflows/vale.yml || fail "reusable workflow missing kit_ref"
+grep -q 'inputs.kit_ref' .github/workflows/vale.yml || fail "kit checkout does not use kit_ref"
 grep -q 'job.workflow_repository' .github/workflows/vale.yml || fail "kit checkout does not use the called workflow repository"
 if grep -q 'GITHUB_WORKFLOW_REF' .github/workflows/vale.yml; then
   fail "GITHUB_WORKFLOW_REF is the caller ref, not the kit ref"
 fi
+if grep -q 'job.workflow_sha' .github/workflows/vale.yml; then
+  fail "kit checkout should take inputs.kit_ref, not job.workflow_sha"
+fi
+test ! -e scripts/kit-ref.sh || fail "unused scripts/kit-ref.sh should stay deleted"
 
 repo=$(mktemp -d)
 git -C "$repo" init -b main
@@ -182,10 +199,15 @@ git -C "$repo" -c user.email=vale-kit-test@example.com -c user.name=vale-kit-tes
 git -C "$repo" checkout -b change
 printf 'It is important to note this.\n' >"$repo/bad.md"
 printf 'more notes\n' >>"$repo/notes.txt"
-git -C "$repo" add bad.md notes.txt
+uni="caf$(printf '\303\251').md"
+printf 'Wash the dog with warm water.\n' >"$repo/$uni"
+git -C "$repo" add -- bad.md notes.txt "$uni"
 git -C "$repo" -c user.email=vale-kit-test@example.com -c user.name=vale-kit-test -c commit.gpgsign=false commit -m "change"
 changed=$(cd "$repo" && VALE_BASE_REF=main bash "$root/scripts/changed-markdown.sh")
-test "$changed" = "bad.md" || fail "git diff listing returned: $changed"
+printf '%s\n' "$changed" | grep -qx 'bad.md' || fail "git diff listing missing bad.md: $changed"
+printf '%s\n' "$changed" | grep -qx "$uni" || fail "non-ASCII markdown was dropped: $changed"
+listed=$(cd "$repo" && bash "$root/scripts/changed-markdown.sh")
+printf '%s\n' "$listed" | grep -qx "$uni" || fail "ls-files dropped non-ASCII markdown: $listed"
 rm -rf "$repo"
 
 echo "All fixture checks passed."

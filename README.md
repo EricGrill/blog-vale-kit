@@ -11,7 +11,7 @@ The repo is public so a private blog can call the workflow and download the Base
 1. Copy [`.vale.ini`](.vale.ini) to the blog repo root.
 2. Copy [`templates/STYLE.md`](templates/STYLE.md) to `STYLE.md` and fill it in.
 3. Add a site style (see below) and name it in `.vale.ini`.
-4. Add `.github/workflows/blog-voice.yml`. The caller is ten lines, and the same file is [`examples/caller.yml`](examples/caller.yml):
+4. Add `.github/workflows/blog-voice.yml`. The same file is [`examples/caller.yml`](examples/caller.yml):
 
 ```yaml
 name: Blog voice
@@ -21,10 +21,13 @@ permissions:
   contents: read
 jobs:
   vale:
-    uses: EricGrill/blog-vale-kit/.github/workflows/vale.yml@main
+    uses: EricGrill/blog-vale-kit/.github/workflows/vale.yml@v1
     with:
       fail_on_error: false
+      kit_ref: v1
 ```
+
+Pin the `uses:` ref and `kit_ref` to the same tag. The workflow file comes from the `uses:` ref. `kit_ref` is the git ref checked out for `styles/Base` and the scripts. It defaults to `main` when a caller omits it. Pass `v1` so a blog does not follow later commits on `main`.
 
 On a pull request the workflow installs Vale, copies `styles/Base` into the checkout, lints changed Markdown and MDX, and posts annotations.
 
@@ -75,7 +78,7 @@ styles/
       reject.txt         # one banned term per line; Vale reports these as errors
 ```
 
-`MinAlertLevel = suggestion`, so suggestions show up. `[formats] mdx = md` treats MDX as Markdown. Block and token ignores skip fenced code, MDX comments (`{/* */}`), JSX tags, `{expressions}`, and `import` / `export` lines. Prose between JSX tags is still checked.
+`MinAlertLevel = suggestion`, so suggestions show up. `[formats] mdx = md` treats MDX as Markdown. Block and token ignores skip fenced code, MDX comments (`{/* */}`), JSX tags, `{expressions}`, and lines that start with `import` or `export`. A sentence that only contains the word `export` is still checked. Angle brackets that are not a tag are still checked. Prose between JSX tags is still checked.
 
 Turn one shared rule off in `.vale.ini` if a site needs to:
 
@@ -122,6 +125,7 @@ python3 /tmp/blog-vale-kit/scripts/vale-lint.py --fail-on-error --config .vale.i
 `bash scripts/test-fixtures.sh` installs the pinned Vale binary and checks all of the following:
 
 - `fixtures/good.md` and `fixtures/good.mdx` produce no alerts. The MDX post plants rejected words inside a comment, a JSX attribute, a multiline tag, and a `{expression}`.
+- `fixtures/export-prose.md` is one prose line that contains `export` and `it is important to note`. It still reports `Base.AIPhrases`.
 - `fixtures/bad.md` and `fixtures/bad.mdx` each report `Base.AIPhrases`, `Base.Hedging`, `Base.PassiveOverload`, `Example.Banned`, `Example.Preferred`, `Example.Tone`, and an error for `synergy` (`Vale.Example.Avoid`).
 - The wrapper exits 0 for those bad posts, and exits 1 with `--fail-on-error`.
 - `vale test --coverage` covers every rule under `styles/`.
