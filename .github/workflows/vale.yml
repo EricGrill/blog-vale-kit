@@ -43,38 +43,14 @@ jobs:
             echo "local=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Resolve kit ref
-        id: kitref
-        if: steps.kit.outputs.local == 'false'
-        env:
-          JOB_WORKFLOW_SHA: ${{ job.workflow_sha }}
-          JOB_WORKFLOW_REF: ${{ job.workflow_ref }}
-        run: |
-          set -euo pipefail
-          # github.workflow_ref is the caller. On a pull request that is
-          # refs/pull/N/merge, which does not exist in this kit repo.
-          # job.workflow_sha is the commit of this reusable workflow.
-          if [ -n "${JOB_WORKFLOW_SHA:-}" ]; then
-            echo "ref=${JOB_WORKFLOW_SHA}" >> "$GITHUB_OUTPUT"
-            echo "Resolved kit ref: ${JOB_WORKFLOW_SHA}"
-            exit 0
-          fi
-          raw="${JOB_WORKFLOW_REF:-${GITHUB_WORKFLOW_REF:-}}"
-          ref="${raw##*@}"
-          if [ -n "$ref" ] && [ "$ref" != "$raw" ]; then
-            echo "ref=${ref}" >> "$GITHUB_OUTPUT"
-            echo "Resolved kit ref: ${ref}"
-            exit 0
-          fi
-          echo "Could not resolve the blog-vale-kit ref from JOB_WORKFLOW_REF='${JOB_WORKFLOW_REF:-}' GITHUB_WORKFLOW_REF='${GITHUB_WORKFLOW_REF:-}'." >&2
-          exit 1
-
       - name: Checkout Vale kit
         if: steps.kit.outputs.local == 'false'
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
-          repository: EricGrill/blog-vale-kit
-          ref: ${{ steps.kitref.outputs.ref }}
+          # The caller ref is not this file. job.workflow_sha is the commit
+          # of this workflow, which is the pin in the caller's uses: line.
+          repository: ${{ job.workflow_repository }}
+          ref: ${{ job.workflow_sha }}
           path: .blog-vale-kit
           persist-credentials: false
 
