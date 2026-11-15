@@ -1,2 +1,4 @@
 .tools/
 .blog-vale-kit/
+__pycache__/
+*.pyc
